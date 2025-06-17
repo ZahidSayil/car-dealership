@@ -1,5 +1,5 @@
 // pages/index.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ICarFilters, CarsResponse } from "@/types/car";
 import SearchFilters from "@/components/cars/SearchFilters";
 import CarCard from "@/components/cars/CarCard";

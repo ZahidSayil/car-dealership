@@ -1,5 +1,5 @@
 // components/SearchFilters.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ICarFilters } from "@/types/car";
 
 interface SearchFiltersProps {
@@ -23,7 +23,10 @@ const SearchFilters = ({
     ...initialFilters,
   });
 
-  const handleFilterChange = (name: keyof ICarFilters, value: any) => {
+  const handleFilterChange = (
+    name: keyof ICarFilters,
+    value: ICarFilters[keyof ICarFilters]
+  ) => {
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);

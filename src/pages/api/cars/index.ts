@@ -1,9 +1,25 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDB } from '@/utils/db/mongodb';
-import Car from '@/models/Car';
-import { ICar, CarsResponse, ICreateCar, ICarFilters } from '@/types/car';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { connectDB } from "@/utils/db/mongodb";
+import Car from "@/models/Car";
+import { ICar, CarsResponse, ICreateCar, ICarFilters } from "@/types/car";
 
 type ApiResponse = CarsResponse | { error: string };
+
+// Define the MongoDB query type
+type MongoQuery = {
+  status?: string;
+  make?: RegExp;
+  model?: RegExp;
+  $or?: Array<{ [key: string]: RegExp }>;
+  price?: {
+    $gte?: number;
+    $lte?: number;
+  };
+  year?: {
+    $gte?: number;
+    $lte?: number;
+  };
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,7 +28,7 @@ export default async function handler(
   await connectDB();
 
   switch (req.method) {
-    case 'GET':
+    case "GET":
       try {
         // Extract query parameters with type safety
         const {
@@ -26,31 +42,31 @@ export default async function handler(
           maxPrice,
           yearFrom,
           yearTo,
-          sortBy = 'createdAt',
-          sortOrder = 'desc'
+          sortBy = "createdAt",
+          sortOrder = "desc",
         } = req.query as unknown as ICarFilters & {
           page: number;
           limit: number;
           sortBy: string;
-          sortOrder: 'asc' | 'desc';
+          sortOrder: "asc" | "desc";
         };
 
         // Build query with type safety
-        const query: Record<string, any> = {};
+        const query: MongoQuery = {};
 
         // Basic filters
         if (status) query.status = status;
-        if (make) query.make = new RegExp(make, 'i');
-        if (model) query.model = new RegExp(model, 'i');
+        if (make) query.make = new RegExp(make, "i");
+        if (model) query.model = new RegExp(model, "i");
 
         // Search functionality
         if (search) {
           query.$or = [
-            { make: new RegExp(search, 'i') },
-            { model: new RegExp(search, 'i') },
-            { description: new RegExp(search, 'i') },
-            { fuelType: new RegExp(search, 'i') },
-            { transmission: new RegExp(search, 'i') }
+            { make: new RegExp(search, "i") },
+            { model: new RegExp(search, "i") },
+            { description: new RegExp(search, "i") },
+            { fuelType: new RegExp(search, "i") },
+            { transmission: new RegExp(search, "i") },
           ];
         }
 
@@ -70,7 +86,7 @@ export default async function handler(
 
         // Build sort options
         const sortOptions: Record<string, 1 | -1> = {};
-        sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
         // Execute query
         const cars = await Car.find(query)
@@ -94,25 +110,26 @@ export default async function handler(
             status: status || null,
             make: make || null,
             model: model || null,
-            priceRange: minPrice || maxPrice 
-              ? { min: Number(minPrice), max: Number(maxPrice) } 
-              : null,
-            yearRange: yearFrom || yearTo 
-              ? { from: Number(yearFrom), to: Number(yearTo) } 
-              : null,
-            sorting: { field: sortBy, order: sortOrder }
-          }
+            priceRange:
+              minPrice || maxPrice
+                ? { min: Number(minPrice), max: Number(maxPrice) }
+                : null,
+            yearRange:
+              yearFrom || yearTo
+                ? { from: Number(yearFrom), to: Number(yearTo) }
+                : null,
+            sorting: { field: sortBy, order: sortOrder },
+          },
         };
 
         res.status(200).json(response);
-
-      } catch (error) {
-        console.error('Error fetching cars:', error);
-        res.status(500).json({ error: 'Error fetching cars' });
+      } catch (error: unknown) {
+        console.error("Error fetching cars:", error);
+        res.status(500).json({ error: "Error fetching cars" });
       }
       break;
 
-    case 'POST':
+    case "POST":
       try {
         // Validate and create new car with type safety
         const carData: ICreateCar = {
@@ -128,12 +145,12 @@ export default async function handler(
           description: req.body.description,
           features: req.body.features || [],
           images: req.body.images || [],
-          status: req.body.status || 'available'
+          status: req.body.status || "available",
         };
 
         // Create new car document
         const newCar = await Car.create(carData);
-        
+
         // Send response
         res.status(201).json({
           cars: [newCar as ICar],
@@ -147,19 +164,21 @@ export default async function handler(
             model: null,
             priceRange: null,
             yearRange: null,
-            sorting: { field: 'createdAt', order: 'desc' }
-          }
+            sorting: { field: "createdAt", order: "desc" },
+          },
         });
-
-      } catch (error: any) {
-        console.error('Error creating car:', error);
-        res.status(400).json({ 
-          error: error.message || 'Error creating car listing' 
+      } catch (error: unknown) {
+        console.error("Error creating car:", error);
+        res.status(400).json({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Error creating car listing",
         });
       }
       break;
 
     default:
-      res.status(405).json({ error: 'Method not allowed' });
+      res.status(405).json({ error: "Method not allowed" });
   }
 }

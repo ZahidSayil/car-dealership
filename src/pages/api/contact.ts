@@ -1,28 +1,47 @@
-// pages/api/contact.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { connectDB } from '@/utils/db/mongodb';
+import { NextApiRequest, NextApiResponse } from "next";
+import nodemailer from "nodemailer";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
   try {
     const { name, email, phone, message, preferredContact, subject } = req.body;
 
-    // Add your email sending logic here
-    // Example: Send email using nodemailer or any email service
+    // Example: Send email using nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-    // Store in database if needed
-    await connectDB();
-    // Add database logic here
+    const mailOptions = {
+      from: email,
+      to: process.env.RECIPIENT_EMAIL,
+      subject: `New Contact Form Submission: ${subject}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Phone: ${phone}
+        Preferred Contact: ${preferredContact}
+        Message: ${message}
+      `,
+    };
 
-    res.status(200).json({ message: 'Message sent successfully' });
+    await transporter.sendMail(mailOptions);
+
+    // Example: Store in database (if needed)
+    // await Database.saveContactForm({ name, email, phone, message, preferredContact, subject });
+
+    res.status(200).json({ message: "Message sent successfully" });
   } catch (error) {
-    console.error('Contact form error:', error);
-    res.status(500).json({ message: 'Error sending message' });
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 }

@@ -1,4 +1,3 @@
-// components/ContactForm.tsx
 import { useState, ChangeEvent, FormEvent } from "react";
 
 interface FormData {
@@ -122,7 +121,7 @@ const ContactForm = () => {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Contact Us</h2>
           <p className="text-gray-600">
-            Have a question? We'd love to hear from you.
+            Have a question? We&apos;d love to hear from you.
           </p>
         </div>
 
@@ -303,7 +302,7 @@ const ContactForm = () => {
         {/* Success Message */}
         {submitSuccess && (
           <div className="mt-6 p-4 bg-green-50 text-green-800 rounded-md text-center">
-            Thank you for your message. We'll get back to you soon!
+            Thank you for your message. We&apos;ll get back to you soon!
           </div>
         )}
       </div>
