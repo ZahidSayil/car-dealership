@@ -1,6 +1,5 @@
-import { connectDB } from '@/utils/db/mongodb';
-import type { NextApiRequest, NextApiResponse } from 'next';
-
+import { connectDB } from "@/utils/db/mongodb";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
@@ -8,8 +7,8 @@ export default async function handler(
 ) {
   try {
     await connectDB();
-    res.status(200).json({ message: 'Connected to MongoDB!' });
+    res.status(200).json({ message: "Connected to MongoDB!" });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to connect to MongoDB' });
+    res.status(500).json({ error: "Failed to connect to MongoDB" });
   }
 }
